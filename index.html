@@ -68,6 +68,7 @@
         <button class="btn btn-primary" id="btn-run" type="button">▶ Run</button>
         <button class="btn btn-stop" id="btn-stop" type="button" disabled>■ Stop</button>
         <label class="speed">Slow <input id="speed" type="range" min="0.5" max="3" step="0.25" value="1"> Fast</label>
+        <button class="btn btn-soft" id="btn-edit" type="button" hidden>✎ Edit flowchart</button>
         <span class="run-state" id="run-state">Stopped</span>
       </div>
     </section>
@@ -75,7 +76,7 @@
     <!-- Mimic -->
     <section class="right">
       <div class="card mimic">
-        <div class="mimic-head"><span>THE HOUSE (MIMIC)</span>
+        <div class="mimic-head"><span>THE HOUSE (MIMIC) <button class="link" id="btn-big" type="button">⤢ Enlarge</button></span>
           <span class="legend"><i class="sw eth"></i>Cable <i class="sw wifi"></i>Wi-Fi <i class="sw pk"></i>Packet</span></div>
         <svg id="house" viewBox="0 0 560 410" aria-label="House mimic"></svg>
         <div class="tray" id="tray" hidden></div>
