@@ -39,8 +39,8 @@
     $('btn-ping').hidden = !m.ping;
     $('house-tip').textContent = m.mode === 'build' ? 'Drag a device onto a lettered space. Drag it off again to change your mind.'
       : m.mode === 'links' ? 'Drag a link onto a device, or tap a link and then tap devices.'
-      : m.locked ? 'The wiring is fixed for this mission.' : 'Click a device to change its link: none → Wi-Fi → cable (if it has a socket).';
-    document.querySelector('.grid').classList.toggle('noflow', !!m.noflow);   // build missions: no flowchart yet, so give the house the space
+      : m.locked ? 'This house is live: click the doorbell, the motion sensor or the sun to change an input.' : 'Click a device to change its link: none → Wi-Fi → cable (if it has a socket).';
+    document.querySelector('.grid').classList.toggle('noflow', !!m.noflow); setBig(false);   // build missions: no flowchart yet, so give the house the space
     FC.load((!fresh && A.charts[i]) || m.chart);
     HL.setup({ links: (!fresh && !m.locked && A.wiring[i]) || m.links, locked: m.locked, out: m.out, mode: m.mode, place: !fresh && A.place[i] });
     FC.setTool('select');
@@ -80,8 +80,18 @@
     $('btn-next').hidden = A.cur >= MISSIONS.length - 1;
   }
 
+  /** Enlarged house: switched on automatically by Run, and off again as soon as the pupil goes back to editing. */
+  function setBig(on) {
+    on = on && !M().noflow;
+    document.querySelector('.grid').classList.toggle('big', on);
+    $('btn-big').textContent = on ? '⤡ Shrink' : '⤢ Enlarge';
+    $('btn-edit').hidden = !on || FC.U.running;
+  }
+  const isBig = () => document.querySelector('.grid').classList.contains('big');
+
   function onRun(running) {
     HL.S.busy = running;
+    if (running) setBig(true); else $('btn-edit').hidden = !isBig();
     $('btn-run').disabled = running; $('btn-stop').disabled = !running; $('btn-ping').disabled = running;
     document.querySelectorAll('#symbols .sym, #tools .tool').forEach(b => { b.disabled = running; });
     $('run-state').textContent = running ? 'Running…' : 'Stopped'; $('run-state').classList.toggle('on', running);
@@ -103,6 +113,10 @@
       FC.run();
     });
     $('btn-stop').addEventListener('click', () => FC.stop());
+    $('btn-big').addEventListener('click', () => setBig(!isBig()));
+    $('btn-edit').addEventListener('click', () => setBig(false));
+    // Touching the flowchart itself (not the Run bar) means "I want to edit": give the flowchart its space back.
+    document.querySelector('.flow').addEventListener('pointerdown', ev => { if (isBig() && !FC.U.running && !ev.target.closest('.runbar')) setBig(false); });
     $('btn-ping').addEventListener('click', () => { A.ev = A.ev.filter(e => e.type !== 'ping'); A.t0 = performance.now(); HL.pingAll(); });
     $('speed').addEventListener('input', e => { HL.S.speed = parseFloat(e.target.value); });
     $('btn-hint').addEventListener('click', () => { $('hint').hidden = !$('hint').hidden; });

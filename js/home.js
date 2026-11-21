@@ -50,10 +50,14 @@ window.HL = (() => {
         else if (S.place[s]) beginDrag(ev, S.place[s], s);     // pick a placed item back up
         return;
       }
+      if (ev.target.closest('[data-in="night"]')) { if (S.mode === 'play') setInput('night', !S.actual.night); return; }
       const g = ev.target.closest('[data-dev]');
       if (!g) return;
-      if (S.mode === 'links' && S.pick) applyLink(g.dataset.dev, S.pick);
-      else cycleLink(g.dataset.dev);
+      const id = g.dataset.dev;
+      if (S.mode === 'links' && S.pick) applyLink(id, S.pick);
+      // In flowchart missions the mimic is live: press the doorbell or walk past the sensor by clicking it.
+      else if (S.mode === 'play' && (id === 'doorbell' || id === 'motion') && (S.locked || S.busy)) setInput(id, !S.actual[id]);
+      else cycleLink(id);
     });
     tray = document.getElementById('tray');
     tray.addEventListener('pointerdown', ev => { const c = ev.target.closest('[data-item]'); if (c) beginDrag(ev, c.dataset.item, null); });
@@ -185,8 +189,10 @@ window.HL = (() => {
     let h = '';
     // sky, ground, house shell
     h += `<rect width="560" height="410" fill="${night ? '#1E2552' : '#BFE3FF'}"/>`;
+    h += '<g data-in="night"><circle cx="500" cy="48" r="30" fill="transparent"/>';
     h += night ? '<circle cx="500" cy="48" r="20" fill="#FFF3C4"/><circle cx="509" cy="42" r="18" fill="#1E2552"/><g fill="#fff"><circle cx="60" cy="40" r="1.6"/><circle cx="130" cy="70" r="1.3"/><circle cx="330" cy="28" r="1.6"/><circle cx="420" cy="62" r="1.2"/><circle cx="230" cy="20" r="1.3"/></g>'
                : '<circle cx="500" cy="48" r="22" fill="#FFC83D" stroke="#1B2440" stroke-width="2.5"/>';
+    h += '</g>';
     h += `<rect y="370" width="560" height="40" fill="${night ? '#1F5E46' : '#7ED9A3'}"/>`;
     h += '<polygon points="42,128 280,34 518,128" fill="#E2586F" stroke="#1B2440" stroke-width="3" stroke-linejoin="round"/>';
     h += '<rect x="60" y="126" width="220" height="114" fill="#FFF1D6"/><rect x="280" y="126" width="220" height="114" fill="#E7E0FF"/>';
