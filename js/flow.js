@@ -1,4 +1,4 @@
-/* Home Lab — flowchart editor and run engine (Start, Output, Delay, Decision, Stop). */
+/* HiveMind — flowchart editor and run engine (Start, Output, Delay, Decision, Stop). */
 window.FC = (() => {
   const C = { nodes: [], edges: [] };
   const U = { tool: 'select', sel: null, from: null, drag: null, active: new Set(), running: false, token: 0, seq: 1 };

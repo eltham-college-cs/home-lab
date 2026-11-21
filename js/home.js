@@ -1,4 +1,4 @@
-/* Home Lab — the house mimic and its network.
+/* HiveMind — the house mimic and its network.
    Every command from the Home Hub travels as a packet: Hub -> Router -> device.
    If a device has no link to the Router, the packet is dropped. */
 window.HL = (() => {

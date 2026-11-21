@@ -1,15 +1,16 @@
-/* Home Lab — glue: missions, checklist, inputs/outputs panel, log, saving. */
+/* HiveMind — glue: missions, checklist, inputs/outputs panel, log, saving. */
 (() => {
   const KEY = 'homelab-proto-v2';
-  const A = { cur: 0, done: {}, charts: {}, wiring: {}, place: {}, ev: [], t0: 0, teacher: false };
+  const A = { cur: 0, done: {}, charts: {}, wiring: {}, place: {}, ev: [], t0: 0, teacher: false, demo: location.hash.toLowerCase() === '#demo' };
   // Teacher shortcut: add #teacher_code (or #teacher) to the address to open every mission without completing the one before.
-  const isTeacher = () => ['#teacher_code', '#teacher'].includes(location.hash.toLowerCase());
+  // #demo is the teacher demo embedded in the slides: every mission open, nothing saved, starts on a finished flowchart ready to Run.
+  const isTeacher = () => ['#teacher_code', '#teacher', '#demo'].includes(location.hash.toLowerCase());
   A.teacher = isTeacher();
   const $ = id => document.getElementById(id);
   const M = () => MISSIONS[A.cur];
 
-  function save() { try { localStorage.setItem(KEY, JSON.stringify({ done: A.done, charts: A.charts, wiring: A.wiring, place: A.place, cur: A.cur })); } catch (e) { /* storage unavailable: carry on unsaved */ } }
-  function restore() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { A.done = s.done || {}; A.charts = s.charts || {}; A.wiring = s.wiring || {}; A.place = s.place || {}; A.cur = Math.min(s.cur || 0, MISSIONS.length - 1); } } catch (e) { /* ignore */ } }
+  function save() { if (A.demo) return; try { localStorage.setItem(KEY, JSON.stringify({ done: A.done, charts: A.charts, wiring: A.wiring, place: A.place, cur: A.cur })); } catch (e) { /* storage unavailable: carry on unsaved */ } }
+  function restore() { if (A.demo) return; try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { A.done = s.done || {}; A.charts = s.charts || {}; A.wiring = s.wiring || {}; A.place = s.place || {}; A.cur = Math.min(s.cur || 0, MISSIONS.length - 1); } } catch (e) { /* ignore */ } }
 
   function log(msg, cls) {
     const d = document.createElement('div'); d.className = 'lg ' + (cls || ''); d.textContent = msg;
@@ -41,7 +42,7 @@
       : m.mode === 'links' ? 'Drag a link onto a device, or tap a link and then tap devices.'
       : m.locked ? 'This house is live: click the doorbell, the motion sensor or the sun to change an input.' : 'Click a device to change its link: none → Wi-Fi → cable (if it has a socket).';
     document.querySelector('.grid').classList.toggle('noflow', !!m.noflow); setBig(false);   // build missions: no flowchart yet, so give the house the space
-    FC.load((!fresh && A.charts[i]) || m.chart);
+    FC.load((!fresh && A.charts[i]) || (A.demo && m.demoChart) || m.chart);
     HL.setup({ links: (!fresh && !m.locked && A.wiring[i]) || m.links, locked: m.locked, out: m.out, mode: m.mode, place: !fresh && A.place[i] });
     FC.setTool('select');
     renderTabs(); evaluate(); save();
@@ -127,10 +128,11 @@
       const dark = document.documentElement.dataset.theme !== 'dark';
       document.documentElement.dataset.theme = dark ? 'dark' : 'light'; FC.render();
     });
-    window.addEventListener('hashchange', () => { A.teacher = isTeacher(); if (!unlocked(A.cur)) select(0); else renderTabs(); });
+    window.addEventListener('hashchange', () => { if (A.demo || location.hash.toLowerCase() === '#demo') return location.reload(); A.teacher = isTeacher(); if (!unlocked(A.cur)) select(0); else renderTabs(); });
+    if (A.demo) { A.cur = MISSIONS.findIndex(m => m.demoChart); $('tag').textContent = 'TEACHER DEMO'; }
     if (!unlocked(A.cur)) A.cur = 0;
     select(A.cur);
-    log('Welcome to Home Lab. The Home Hub runs your flowchart and sends every instruction as a packet.', 'info');
+    log('Welcome to HiveMind. The Home Hub runs your flowchart and sends every instruction as a packet.', 'info');
   }
   document.addEventListener('DOMContentLoaded', init);
   window.APP = A;

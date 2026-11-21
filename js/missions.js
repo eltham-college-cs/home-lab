@@ -1,4 +1,4 @@
-/* Home Lab — missions. Each check reads the wiring, the flowchart and what happened in the last run. */
+/* HiveMind — missions. Each check reads the wiring, the flowchart and what happened in the last run. */
 (() => {
   const ALL = { doorbell: 'wifi', motion: 'wifi', light: 'wifi', tv: 'eth', printer: 'eth', phone: 'wifi' };
   const idx = (ev, f) => ev.findIndex(f);
@@ -72,6 +72,11 @@
         { t: 'The phone gets an alert after the bell', f: c => after(c.ev, inOn('doorbell'), outOn('phone', true)) },
         { t: 'The Hall Light comes on too', f: c => after(c.ev, inOn('doorbell'), outOn('light', true)) }
       ],
+      demoChart: { nodes: [
+        { id: 'a', type: 'start', x: 230, y: 50 }, { id: 'b', type: 'decision', x: 230, y: 150, cfg: { input: 'doorbell' } },
+        { id: 'c', type: 'output', x: 230, y: 280, cfg: { set: { light: 'on', phone: 'on' } } }, { id: 'd', type: 'delay', x: 230, y: 380, cfg: { secs: 3 } },
+        { id: 'e', type: 'output', x: 230, y: 480, cfg: { set: { light: 'off', phone: 'off' } } }
+      ], edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c', branch: 'yes' }, { from: 'b', to: 'b', branch: 'no' }, { from: 'c', to: 'd' }, { from: 'd', to: 'e' }, { from: 'e', to: 'b' }] },
       hint: 'A decision is a yes/no question. Set it to Doorbell. In the first Output, switch Phone alert and Hall Light on. In the second, switch them off again.',
       book: '<b>In your book:</b> <b>selection</b> means choosing a path. The doorbell is outside the house: how did the Hub find out it was pressed?'
     },
