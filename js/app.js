@@ -1,7 +1,10 @@
 /* Home Lab — glue: missions, checklist, inputs/outputs panel, log, saving. */
 (() => {
   const KEY = 'homelab-proto-v2';
-  const A = { cur: 0, done: {}, charts: {}, wiring: {}, place: {}, ev: [], t0: 0, teacher: location.hash === '#teacher' };
+  const A = { cur: 0, done: {}, charts: {}, wiring: {}, place: {}, ev: [], t0: 0, teacher: false };
+  // Teacher shortcut: add #teacher_code (or #teacher) to the address to open every mission without completing the one before.
+  const isTeacher = () => ['#teacher_code', '#teacher'].includes(location.hash.toLowerCase());
+  A.teacher = isTeacher();
   const $ = id => document.getElementById(id);
   const M = () => MISSIONS[A.cur];
 
@@ -110,6 +113,7 @@
       const dark = document.documentElement.dataset.theme !== 'dark';
       document.documentElement.dataset.theme = dark ? 'dark' : 'light'; FC.render();
     });
+    window.addEventListener('hashchange', () => { A.teacher = isTeacher(); if (!unlocked(A.cur)) select(0); else renderTabs(); });
     if (!unlocked(A.cur)) A.cur = 0;
     select(A.cur);
     log('Welcome to Home Lab. The Home Hub runs your flowchart and sends every instruction as a packet.', 'info');
