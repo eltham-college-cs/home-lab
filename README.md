@@ -1,10 +1,10 @@
-# Home Lab (prototype)
+# HiveMind (prototype)
 
 A Flowol-style activity for Year 8: pupils write flowcharts that control a networked home.
 The Home Hub runs the flowchart and every instruction travels as a packet (Hub -> Router -> device).
 If a device has no link to the Router, the packet is dropped and the log says why.
 
-Open `index.html` in a browser. Add `#teacher_code` to the address to unlock every mission.
+Open `index.html` in a browser. Add `#teacher_code` to the address to unlock every mission. `#demo` is the teacher demo used in the lesson slides (nothing saved, opens on a finished flowchart).
 
 - `js/home.js` : the house mimic, links (cable / Wi-Fi) and packet animation
 - `js/flow.js` : flowchart editor (Start, Output, Delay, Decision, Stop) and run engine
