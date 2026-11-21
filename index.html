@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Lab: Flowcharts on a Network · Eltham College</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=JetBrains+Mono:wght@500;700&family=Nunito:wght@600;700;800;900&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hdr">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">⌂</div>
+      <div>
+        <h1>Home Lab <span class="tag">YEAR 8 · PROTOTYPE</span></h1>
+        <p>Eltham College Computing · Control a networked home with flowcharts</p>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="progress" id="progress">0 / 7</span>
+      <button class="hbtn" id="btn-theme" type="button" title="Light / dark">☾</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Missions"></nav>
+
+  <main class="grid">
+    <!-- Mission -->
+    <aside class="card mission">
+      <div class="m-top"><span class="m-num" id="m-num">Mission 1</span><span class="m-skill" id="m-skill"></span></div>
+      <h2 id="m-title"></h2>
+      <p id="m-brief"></p>
+      <div class="checks">
+        <div class="checks-head"><span>MISSION CHECKLIST</span><span id="check-count">0/0</span></div>
+        <ul id="checklist"></ul>
+      </div>
+      <div class="done-banner" id="done-banner" hidden>Mission complete! <button class="btn btn-primary" id="btn-next" type="button">Next mission →</button></div>
+      <div class="book" id="m-book"></div>
+      <div class="m-actions">
+        <button class="btn btn-soft" id="btn-hint" type="button">Hint</button>
+        <button class="btn btn-soft" id="btn-reset" type="button">Reset mission</button>
+      </div>
+      <div class="hint" id="hint" hidden></div>
+    </aside>
+
+    <!-- Flowchart -->
+    <section class="card flow">
+      <div class="flow-bar">
+        <div class="group" id="tools">
+          <button class="tool active" data-tool="select" type="button" title="Select and move symbols">➤ Select</button>
+          <button class="tool" data-tool="arrow" type="button" title="Join two symbols with an arrow">→ Arrow</button>
+          <button class="tool danger" data-tool="delete" type="button" title="Delete a symbol or an arrow">✕ Delete</button>
+        </div>
+        <div class="group" id="symbols">
+          <button class="sym" data-add="start" type="button"><svg viewBox="0 0 44 20"><rect x="2" y="3" width="40" height="14" rx="7"/></svg>Start</button>
+          <button class="sym" data-add="output" type="button"><svg viewBox="0 0 44 20"><polygon points="8,3 42,3 36,17 2,17"/></svg>Output</button>
+          <button class="sym" data-add="delay" type="button"><svg viewBox="0 0 44 20"><rect x="4" y="3" width="36" height="14"/></svg>Delay</button>
+          <button class="sym" data-add="decision" type="button"><svg viewBox="0 0 44 20"><polygon points="22,2 42,10 22,18 2,10"/></svg>Decision</button>
+          <button class="sym" data-add="stop" type="button"><svg viewBox="0 0 44 20"><rect x="2" y="3" width="40" height="14" rx="7"/></svg>Stop</button>
+        </div>
+      </div>
+      <div class="tip" id="flow-tip">Select: drag a symbol to move it, or click it to edit it below.</div>
+      <div class="canvas-wrap"><svg id="chart" viewBox="0 0 640 700" preserveAspectRatio="xMidYMin meet" aria-label="Flowchart"></svg></div>
+      <div class="editor" id="editor"></div>
+      <div class="runbar">
+        <button class="btn btn-primary" id="btn-run" type="button">▶ Run</button>
+        <button class="btn btn-stop" id="btn-stop" type="button" disabled>■ Stop</button>
+        <label class="speed">Slow <input id="speed" type="range" min="0.5" max="3" step="0.25" value="1"> Fast</label>
+        <span class="run-state" id="run-state">Stopped</span>
+      </div>
+    </section>
+
+    <!-- Mimic -->
+    <section class="right">
+      <div class="card mimic">
+        <div class="mimic-head"><span>THE HOUSE (MIMIC)</span>
+          <span class="legend"><i class="sw eth"></i>Cable <i class="sw wifi"></i>Wi-Fi <i class="sw pk"></i>Packet</span></div>
+        <svg id="house" viewBox="0 0 560 410" aria-label="House mimic"></svg>
+        <div class="tray" id="tray" hidden></div>
+        <div class="tip" id="house-tip"></div>
+        <button class="btn btn-soft" id="btn-ping" type="button">Ping test: can the Hub reach every device?</button>
+      </div>
+      <div class="card io">
+        <div class="io-col"><h3>INPUTS <small>click to change</small></h3><div id="io-in"></div></div>
+        <div class="io-col"><h3>OUTPUTS</h3><div id="io-out"></div></div>
+      </div>
+      <div class="card logcard">
+        <div class="log-head"><h3>NETWORK LOG</h3><button class="link" id="btn-clear" type="button">Clear</button></div>
+        <div id="log"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/home.js"></script>
+  <script src="js/flow.js"></script>
+  <script src="js/missions.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
