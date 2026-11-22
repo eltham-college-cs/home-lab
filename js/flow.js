@@ -72,11 +72,16 @@ window.FC = (() => {
   function route(e) {
     const a = node(e.from), b = node(e.to), sa = size(a), sb = size(b);
     const tx = b.x, ty = b.y - sb.h / 2;
+    // A loop back joins the line coming down into its target (as in Flowol), with its own arrowhead and at its own
+    // height, so a NO loop and a "go round again" loop can never be mistaken for one line. This needs a straight
+    // line arriving from above; without one the loop enters the top of the symbol instead.
+    const fed = C.edges.some(o => { const s = node(o.from); if (o === e || o.to !== b.id || !s || o.branch === 'no') return false;
+      const gap = ty - (s.y + size(s).h / 2); return gap >= 16 && (Math.abs(s.x - tx) < 2 ? gap >= 34 : gap / 2 >= 30); });
     if (e.branch === 'no') {
       const sx = a.x + sa.w / 2, sy = a.y;
       if (tx > sx + 12 && ty > sy) return { d: `M${sx},${sy} H${tx} V${ty}`, lx: sx + 6, ly: sy - 6 };
       const rx = Math.max(sx, b.x + sb.w / 2) + 34;
-      return { d: `M${sx},${sy} H${rx} V${ty - 18} H${tx} V${ty}`, lx: sx + 6, ly: sy - 6 };
+      return { d: fed ? `M${sx},${sy} H${rx} V${ty - 12} H${tx + 2}` : `M${sx},${sy} H${rx} V${ty - 18} H${tx} V${ty}`, lx: sx + 6, ly: sy - 6 };
     }
     const sx = a.x, sy = a.y + sa.h / 2;
     const lab = { lx: sx + 8, ly: sy + 14 };
@@ -86,7 +91,7 @@ window.FC = (() => {
       return Object.assign({ d: `M${sx},${sy} V${my} H${tx} V${ty}` }, lab);
     }
     const side = Math.min(a.x - sa.w / 2, b.x - sb.w / 2) - 28;   // loop back up the left-hand side
-    return Object.assign({ d: `M${sx},${sy} V${sy + 18} H${side} V${ty - 18} H${tx} V${ty}` }, lab);
+    return Object.assign({ d: fed ? `M${sx},${sy} V${sy + 18} H${side} V${ty - 26} H${tx - 2}` : `M${sx},${sy} V${sy + 18} H${side} V${ty - 18} H${tx} V${ty}` }, lab);
   }
   function shape(n) {
     const { w, h } = size(n), x = -w / 2, y = -h / 2;
