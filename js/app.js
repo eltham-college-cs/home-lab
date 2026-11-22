@@ -1,16 +1,17 @@
 /* HiveMind — glue: missions, checklist, inputs/outputs panel, log, saving. */
 (() => {
   const KEY = 'homelab-proto-v2';
-  const A = { cur: 0, done: {}, charts: {}, wiring: {}, place: {}, ev: [], t0: 0, teacher: false, demo: location.hash.toLowerCase() === '#demo' };
+  const A = { cur: 0, done: {}, charts: {}, wiring: {}, place: {}, ticks: {}, ev: [], t0: 0, teacher: false, demo: location.hash.toLowerCase() === '#demo' };
   // Teacher shortcut: add #teacher_code (or #teacher) to the address to open every mission without completing the one before.
   // #demo is the teacher demo embedded in the slides: every mission open, nothing saved, starts on a finished flowchart ready to Run.
   const isTeacher = () => ['#teacher_code', '#teacher', '#demo'].includes(location.hash.toLowerCase());
   A.teacher = isTeacher();
   const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   const M = () => MISSIONS[A.cur];
 
-  function save() { if (A.demo) return; try { localStorage.setItem(KEY, JSON.stringify({ done: A.done, charts: A.charts, wiring: A.wiring, place: A.place, cur: A.cur })); } catch (e) { /* storage unavailable: carry on unsaved */ } }
-  function restore() { if (A.demo) return; try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { A.done = s.done || {}; A.charts = s.charts || {}; A.wiring = s.wiring || {}; A.place = s.place || {}; A.cur = Math.min(s.cur || 0, MISSIONS.length - 1); } } catch (e) { /* ignore */ } }
+  function save() { if (A.demo) return; try { localStorage.setItem(KEY, JSON.stringify({ done: A.done, charts: A.charts, wiring: A.wiring, place: A.place, ticks: A.ticks, cur: A.cur })); } catch (e) { /* storage unavailable: carry on unsaved */ } }
+  function restore() { if (A.demo) return; try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { A.done = s.done || {}; A.charts = s.charts || {}; A.wiring = s.wiring || {}; A.place = s.place || {}; A.ticks = s.ticks || {}; A.cur = Math.min(s.cur || 0, MISSIONS.length - 1); } } catch (e) { /* ignore */ } }
 
   function log(msg, cls) {
     const d = document.createElement('div'); d.className = 'lg ' + (cls || ''); d.textContent = msg;
@@ -62,21 +63,60 @@
     $('io-out').innerHTML = Object.keys(HL.OUTPUTS).map(id => `<div class="io-row out${s.out[id] ? ' on' : ''}"><span>${HL.OUTPUTS[id]}</span><span class="st">${s.out[id] ? 'ON' : 'off'}</span></div>`).join('');
   }
 
+  /** Dry run: follow the flowchart instantly (no packets, no waiting) to predict what a real run would do.
+      The mission's test input (doorbell, motion or night) is switched on after the flowchart has asked a few times.
+      The result is a list of events in the same form as a real run, so the same checks can read it. */
+  function dryRun(m) {
+    const ev = [], links = HL.S.links, nodes = FC.C.nodes, edges = FC.C.edges;
+    const linked = id => links[id] !== 'none';
+    HL.ENDPOINTS.forEach(id => ev.push({ type: 'ping', id, ok: linked(id) }));
+    if (m.noflow) return ev;
+    const known = {}, node = id => nodes.find(n => n.id === id), next = (id, br) => edges.find(e => e.from === id && (br ? e.branch === br : true));
+    let threads = nodes.filter(n => n.type === 'start'), asked = 0, t = 0;
+    for (let step = 0; step < 400 && threads.some(Boolean); step++) {
+      threads = threads.map(cur => {
+        if (!cur) return null;
+        if (cur.type === 'stop') return null;
+        if (cur.type === 'output') Object.keys(HL.OUTPUTS).filter(k => cur.cfg.set[k]).forEach(k => ev.push({ type: linked(k) ? 'output' : 'drop', id: k, val: cur.cfg.set[k] === 'on', t }));
+        if (cur.type === 'delay') { t += cur.cfg.secs * 1000; ev.push({ type: 'delay', secs: cur.cfg.secs, t }); }
+        if (cur.type === 'decision') {
+          if (!cur.cfg.input) return null;
+          if (++asked === 3 && m.simInput && (m.simInput === 'night' || linked(m.simInput))) { known[m.simInput] = true; ev.push({ type: 'input', id: m.simInput, val: true, t }); }
+          const e = next(cur.id, known[cur.cfg.input] ? 'yes' : 'no'); return e ? node(e.to) : null;
+        }
+        const e = next(cur.id); return e ? node(e.to) : null;
+      });
+    }
+    return ev;
+  }
+
+  /** Three states per check: ticked (proved by a real run), ready (the flowchart or wiring now looks right, so press Run), or not yet.
+      A tick earned in an earlier run is kept for as long as the dry run still agrees, so the list stays in step with the flowchart. */
   function evaluate() {
-    const m = M(), c = { ev: A.ev, links: HL.S.links, place: HL.S.place, nodes: FC.C.nodes, loop: FC.hasLoop() };
-    let ok = 0, need = 0;
+    const m = M(), base = { links: HL.S.links, place: HL.S.place, nodes: FC.C.nodes, loop: FC.hasLoop() };
+    const live = Object.assign({ ev: A.ev }, base), sim = Object.assign({ ev: dryRun(m) }, base);
+    // A mission finished before ticks were remembered counts as having earned all of them.
+    if (A.done[A.cur] && !A.ticks[A.cur]) { A.ticks[A.cur] = {}; m.checks.forEach((ch, i) => { A.ticks[A.cur][i] = true; }); }
+    const busy = FC.U.running || HL.S.busy, kept = (A.ticks[A.cur] = A.ticks[A.cur] || {});
+    const test = (ch, c) => { try { return !!ch.f(c); } catch (e) { return false; } };
+    let ok = 0, need = 0, ready = 0, changed = false;
     $('checklist').innerHTML = '';
-    m.checks.forEach(ch => {
-      let pass = false; try { pass = !!ch.f(c); } catch (e) { pass = false; }
-      let wrong = false; try { wrong = !pass && !!(ch.w && ch.w(c)); } catch (e) { wrong = false; }
+    m.checks.forEach((ch, i) => {
+      const now = test(ch, live), predicted = test(ch, sim);
+      if (now && !kept[i]) { kept[i] = true; changed = true; }
+      const pass = now || (!busy && kept[i] && predicted);
+      const isReady = !pass && predicted && !busy;
+      let wrong = false; try { wrong = !pass && !!(ch.w && ch.w(live)); } catch (e) { wrong = false; }
       const li = document.createElement('li');
-      if (ch.html) li.innerHTML = `<span>${ch.html}${wrong ? '<small>Not quite. Read the clue again.</small>' : ''}</span>`; else li.textContent = ch.t;
-      li.className = (pass ? 'ok' : wrong ? 'bad' : '') + (ch.bonus ? ' bonus' : '');
+      const note = wrong ? '<small>Not quite. Read the clue again.</small>' : isReady ? `<small class="go">${m.noflow ? 'Looks right. Run the ping test to prove it.' : 'Looks right. Press Run to test it.'}</small>` : '';
+      li.innerHTML = `<span>${ch.html || esc(ch.t)}${note}</span>`;
+      li.className = (pass ? 'ok' : wrong ? 'bad' : isReady ? 'ready' : '') + (ch.bonus ? ' bonus' : '');
       $('checklist').appendChild(li);
-      if (!ch.bonus) { need++; if (pass) ok++; }
+      if (!ch.bonus) { need++; if (pass) ok++; else if (isReady) ready++; }
     });
     $('check-count').textContent = `${ok}/${need}`;
-    if (ok === need && !A.done[A.cur]) { A.done[A.cur] = true; log(`Mission ${A.cur + 1} complete: ${m.title}!`, 'ok'); renderTabs(); save(); }
+    if (ok === need && !A.done[A.cur]) { A.done[A.cur] = true; log(`Mission ${A.cur + 1} complete: ${m.title}!`, 'ok'); renderTabs(); changed = true; }
+    if (changed) save();
     $('done-banner').hidden = !A.done[A.cur];
     $('btn-next').hidden = A.cur >= MISSIONS.length - 1;
   }
@@ -94,6 +134,7 @@
     HL.S.busy = running;
     if (running) setBig(true); else $('btn-edit').hidden = !isBig();
     $('btn-run').disabled = running; $('btn-stop').disabled = !running; $('btn-ping').disabled = running;
+    if (!running) evaluate();
     document.querySelectorAll('#symbols .sym, #tools .tool').forEach(b => { b.disabled = running; });
     $('run-state').textContent = running ? 'Running…' : 'Stopped'; $('run-state').classList.toggle('on', running);
   }
@@ -122,7 +163,7 @@
     $('btn-ping').addEventListener('click', () => { A.ev = A.ev.filter(e => e.type !== 'ping'); A.t0 = performance.now(); HL.pingAll(); });
     $('speed').addEventListener('input', e => { HL.S.speed = parseFloat(e.target.value); });
     $('btn-hint').addEventListener('click', () => { $('hint').hidden = !$('hint').hidden; });
-    $('btn-reset').addEventListener('click', () => { delete A.charts[A.cur]; delete A.wiring[A.cur]; delete A.place[A.cur]; select(A.cur, true); log('Mission reset to its starting point.', 'info'); });
+    $('btn-reset').addEventListener('click', () => { delete A.charts[A.cur]; delete A.wiring[A.cur]; delete A.place[A.cur]; delete A.ticks[A.cur]; select(A.cur, true); log('Mission reset to its starting point.', 'info'); });
     $('btn-next').addEventListener('click', () => { if (A.cur < MISSIONS.length - 1) select(A.cur + 1); });
     $('btn-clear').addEventListener('click', () => { $('log').innerHTML = ''; });
     $('btn-theme').addEventListener('click', () => {

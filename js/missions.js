@@ -60,7 +60,7 @@
       book: '<b>In your book:</b> a <b>sequence</b> is instructions carried out in order. Which device did every packet pass through on its way to the light?'
     },
     {
-      title: 'Doorbell Alert', skill: 'selection', locked: true,
+      title: 'Doorbell Alert', simInput: 'doorbell', skill: 'selection', locked: true,
       brief: 'When somebody presses the doorbell, send an alert to the phone and turn the Hall Light on. Fill in the decision and the two outputs, press Run, then click Doorbell in the Inputs list.',
       links: ALL,
       chart: { nodes: [
@@ -82,7 +82,7 @@
       book: '<b>In your book:</b> <b>selection</b> means choosing a path. The doorbell is outside the house: how did the Hub find out it was pressed?'
     },
     {
-      title: 'Night Light', skill: 'iteration', locked: true,
+      title: 'Night Light', simInput: 'motion', skill: 'iteration', locked: true,
       brief: 'Build this one yourself. Keep checking the Motion Sensor for ever. When it detects movement, turn the Hall Light on for 3 seconds, then off, and go back to checking.',
       links: ALL, chart: { nodes: [{ id: 'a', type: 'start', x: 230, y: 50 }], edges: [] },
       checks: [
@@ -95,7 +95,7 @@
       book: '<b>In your book:</b> <b>iteration</b> means repeating. What would happen to the light if the arrow back to the decision was missing?'
     },
     {
-      title: 'Fault Finder', skill: 'troubleshooting',
+      title: 'Fault Finder', simInput: 'doorbell', skill: 'troubleshooting',
       brief: 'This flowchart is correct: when the doorbell rings, the TV shows the door camera and the phone gets an alert. But nothing works! Run it, press the Doorbell, read the log and fix the network.',
       links: { motion: 'wifi', light: 'wifi', printer: 'eth', phone: 'wifi' },
       chart: { nodes: [
@@ -112,7 +112,7 @@
       book: '<b>In your book:</b> the program was perfect but the system failed. Explain why, using the words <b>packet</b> and <b>router</b>.'
     },
     {
-      title: 'Bedtime Mode', skill: 'design challenge', locked: true,
+      title: 'Bedtime Mode', simInput: 'night', skill: 'design challenge', locked: true,
       brief: 'The TV and the Hall Light have been left on. Build a flowchart that waits for night time, then switches the TV and light off and prints tomorrow\'s timetable. Press Run, then click Night time.',
       links: ALL, out: { tv: true, light: true }, chart: { nodes: [{ id: 'a', type: 'start', x: 230, y: 50 }], edges: [] },
       checks: [
