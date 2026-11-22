@@ -52,7 +52,8 @@
       ], edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'c', to: 'd' }, { from: 'd', to: 'e' }] },
       checks: [
         { t: 'The Hall Light switches on', f: c => c.ev.some(outOn('light', true)) },
-        { t: 'It stays on for at least 2 seconds', f: c => { const a = c.ev.find(outOn('light', true)), b = c.ev.find(outOn('light', false)); return !!(a && b && b.t - a.t >= 1900); } },
+        { t: 'It stays on for at least 2 seconds', f: c => { const i = idx(c.ev, outOn('light', true)), j = c.ev.findIndex((e, k) => k > i && outOn('light', false)(e));   // add up the Delay symbols between on and off (packet travel time does not count)
+          return i >= 0 && j > i && c.ev.slice(i, j).filter(e => e.type === 'delay').reduce((s, e) => s + e.secs, 0) >= 2; } },
         { t: 'Then it switches off', f: c => after(c.ev, outOn('light', true), outOn('light', false)) }
       ],
       hint: 'Click an Output symbol with the Select tool, then choose on or off for the Hall Light in the panel underneath. Click the Delay symbol to change its time.',

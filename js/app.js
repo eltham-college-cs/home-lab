@@ -100,12 +100,13 @@
 
   function init() {
     restore();
+    const onEvent = e => { e.t = (performance.now() - A.t0) * HL.S.speed; A.ev.push(e); evaluate(); };
     HL.init({
       onLog: log,
-      onEvent: e => { e.t = (performance.now() - A.t0) * HL.S.speed; A.ev.push(e); evaluate(); },
+      onEvent,
       onChange: () => { renderIO(); if (!M().locked) A.wiring[A.cur] = Object.assign({}, HL.S.links); if (M().mode === 'build') A.place[A.cur] = Object.assign({}, HL.S.place); evaluate(); save(); }
     });
-    FC.init({ onLog: log, onRun, onChange: () => { A.charts[A.cur] = FC.get(); evaluate(); save(); } });
+    FC.init({ onLog: log, onRun, onEvent, onChange: () => { A.charts[A.cur] = FC.get(); evaluate(); save(); } });
 
     $('btn-run').addEventListener('click', () => {
       A.ev = []; A.t0 = performance.now();

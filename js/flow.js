@@ -2,7 +2,7 @@
 window.FC = (() => {
   const C = { nodes: [], edges: [] };
   const U = { tool: 'select', sel: null, from: null, drag: null, active: new Set(), running: false, token: 0, seq: 1 };
-  let svg, onChange = () => {}, onLog = () => {}, onRun = () => {};
+  let svg, onChange = () => {}, onLog = () => {}, onRun = () => {}, onEvent = () => {};
   const TIPS = {
     select: 'Select: drag a symbol to move it, or click it to edit it below.',
     arrow: 'Arrow: click the symbol the arrow leaves, then the symbol it points to. A decision gives YES first, then NO. Click a decision twice to make it keep asking.',
@@ -202,6 +202,7 @@ window.FC = (() => {
         for (const k of set) { if (token !== U.token) break; await HL.command(k, cur.cfg.set[k] === 'on'); }
       } else if (cur.type === 'delay') {
         await sleep(cur.cfg.secs * 1000 / HL.S.speed);
+        if (token === U.token) onEvent({ type: 'delay', secs: cur.cfg.secs });   // lets a mission check how long the flowchart really waited
       }
       if (cur.type === 'decision') {
         if (!cur.cfg.input) { onLog('A Decision symbol has no question. Click it and choose an input.', 'bad'); U.active.delete(cur.id); break; }
@@ -249,7 +250,7 @@ window.FC = (() => {
   }
 
   function init(opts) {
-    svg = document.getElementById('chart'); onChange = opts.onChange; onLog = opts.onLog; onRun = opts.onRun;
+    svg = document.getElementById('chart'); onChange = opts.onChange; onLog = opts.onLog; onRun = opts.onRun; onEvent = opts.onEvent || onEvent;
     svg.addEventListener('pointerdown', onDown);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
