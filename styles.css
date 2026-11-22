@@ -192,3 +192,8 @@ button.io-row { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .grid { transition: none; } }
 .mimic-head .link { margin-left: 8px; letter-spacing: 0; }
 [data-in] { cursor: pointer; }
+
+/* checklist: "ready" = the flowchart looks right but has not been proved by a run yet */
+.checks li.ready::before { content: "▶"; background: var(--sun); border-color: var(--sun); color: #1B2440; font-size: 9px; font-weight: 900; display: grid; place-items: center; }
+.checks li small.go { color: #8A5A00; }
+:root[data-theme="dark"] .checks li small.go { color: var(--sun); }
