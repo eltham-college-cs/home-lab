@@ -29,6 +29,7 @@ window.HL = (() => {
     actual: { doorbell: false, motion: false, night: false },   // what is really happening
     known: { doorbell: false, motion: false, night: false },    // what the Hub has been told
     speed: 1, busy: false,
+    cue: null,               // the input a running flowchart is waiting for (doorbell, motion or night)
     mode: 'play',            // 'build' = drag devices into the house, 'links' = drag cable / Wi-Fi onto devices
     place: {}, pick: null
   };
@@ -230,7 +231,19 @@ window.HL = (() => {
         (link ? `<text y="${id === 'tv' ? 47 : 43}" class="dv-sub" fill="${link === 'none' ? '#E23D63' : link === 'eth' ? '#2E7CF6' : '#00877A'}">${link === 'none' ? 'no link' : link === 'eth' ? 'cable' : 'Wi-Fi'}</text>` : '');
       scene.appendChild(g);
     });
+    // "Click me" prompt: pulsing rings and a label on the input the flowchart is waiting for. It stops once the pupil has acted.
+    if (S.cue && !S.actual[S.cue]) {
+      const p = S.cue === 'night' ? { x: 500, y: 48 } : DEV[S.cue];
+      const words = S.cue === 'night' ? 'Click the sun' : S.cue === 'motion' ? 'Click the sensor' : 'Click the doorbell';
+      const w = words.length * 6.6 + 22, bx = Math.max(6, Math.min(554 - w, p.x - (S.cue === 'doorbell' ? 26 : w / 2))), by = S.cue === 'night' ? p.y + 34 : p.y - 62;
+      const g = el('g', { 'pointer-events': 'none' });
+      g.innerHTML = [0, 0.75].map(b => `<circle cx="${p.x}" cy="${p.y}" r="20" fill="none" stroke="#FFC83D" stroke-width="5"><animate attributeName="r" values="18;44" dur="1.5s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.5s" begin="${b}s" repeatCount="indefinite"/></circle>`).join('') +
+        `<circle cx="${p.x}" cy="${p.y}" r="24" fill="none" stroke="#FFC83D" stroke-width="4"/>` +
+        `<rect x="${bx}" y="${by}" width="${w}" height="24" rx="8" fill="#FFC83D" stroke="#1B2440" stroke-width="2.5"/><text x="${bx + w / 2}" y="${by + 16}" text-anchor="middle" class="cue-text">${words}</text>`;
+      scene.appendChild(g);
+    }
   }
+  function setCue(id) { if (S.cue === id) return; S.cue = id; render(); onChange(); }
 
   /* ---------- packets ---------- */
   function hop(a, b, kind, label) {
@@ -297,5 +310,5 @@ window.HL = (() => {
     S.busy = false; onChange();
   }
 
-  return { DEV, INPUTS, OUTPUTS, ENDPOINTS, SLOTS, S, renderTray, init, setup, resetState, render, command, setInput, pingAll, sleep };
+  return { DEV, INPUTS, OUTPUTS, ENDPOINTS, SLOTS, S, renderTray, init, setup, resetState, render, command, setInput, setCue, pingAll, sleep };
 })();

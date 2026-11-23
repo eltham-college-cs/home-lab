@@ -55,11 +55,21 @@
     Object.keys(HL.INPUTS).forEach(id => {
       const b = document.createElement('button'); b.type = 'button';
       const lost = s.actual[id] !== s.known[id];
-      b.className = 'io-row in' + (s.known[id] ? ' on' : '') + (lost ? ' lost' : '');
+      b.className = 'io-row in' + (s.known[id] ? ' on' : '') + (lost ? ' lost' : '') + (s.cue === id && !s.actual[id] ? ' cue' : '');
       b.innerHTML = `<span>${HL.INPUTS[id]}</span><span class="st">${lost ? 'hub not told' : s.known[id] ? 'ON' : 'off'}</span>`;
       b.addEventListener('click', () => HL.setInput(id, !s.actual[id]));
       $('io-in').appendChild(b);
     });
+    // Prompt above the house while a running flowchart waits for an input.
+    const wb = $('waitbar'), c = s.cue, thing = c === 'night' ? 'the sun' : c === 'motion' ? 'the motion sensor' : 'the doorbell';
+    wb.hidden = !c;
+    if (c) {
+      const stuck = s.actual[c] && !s.known[c];
+      wb.className = 'waitbar' + (stuck ? ' stuck' : '');
+      wb.innerHTML = stuck
+        ? `<b>${HL.INPUTS[c]} was switched on, but the Hub was never told.</b> Read the Network Log, then check that device's link to the Router.`
+        : `<b>The flowchart is waiting: "Is ${HL.INPUTS[c]} on?"</b> Click ${thing} in the house to answer YES.`;
+    }
     $('io-out').innerHTML = Object.keys(HL.OUTPUTS).map(id => `<div class="io-row out${s.out[id] ? ' on' : ''}"><span>${HL.OUTPUTS[id]}</span><span class="st">${s.out[id] ? 'ON' : 'off'}</span></div>`).join('');
   }
 
@@ -147,7 +157,7 @@
       onEvent,
       onChange: () => { renderIO(); if (!M().locked) A.wiring[A.cur] = Object.assign({}, HL.S.links); if (M().mode === 'build') A.place[A.cur] = Object.assign({}, HL.S.place); evaluate(); save(); }
     });
-    FC.init({ onLog: log, onRun, onEvent, onChange: () => { A.charts[A.cur] = FC.get(); evaluate(); save(); } });
+    FC.init({ onLog: log, onRun, onEvent, onWait: id => HL.setCue(id), onChange: () => { A.charts[A.cur] = FC.get(); evaluate(); save(); } });
 
     $('btn-run').addEventListener('click', () => {
       A.ev = []; A.t0 = performance.now();
@@ -157,6 +167,8 @@
     });
     $('btn-stop').addEventListener('click', () => FC.stop());
     $('btn-big').addEventListener('click', () => setBig(!isBig()));
+    // The flowchart panel changes width when the house enlarges or shrinks: refit once the slide has finished.
+    document.querySelector('.grid').addEventListener('transitionend', e => { if (e.propertyName === 'grid-template-columns') FC.fit(); });
     $('btn-edit').addEventListener('click', () => setBig(false));
     // Touching the flowchart itself (not the Run bar) means "I want to edit": give the flowchart its space back.
     document.querySelector('.flow').addEventListener('pointerdown', ev => { if (isBig() && !FC.U.running && !ev.target.closest('.runbar')) setBig(false); });

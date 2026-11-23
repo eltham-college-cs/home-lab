@@ -61,7 +61,7 @@
     },
     {
       title: 'Doorbell Alert', simInput: 'doorbell', skill: 'selection', locked: true,
-      brief: 'When somebody presses the doorbell, send an alert to the phone and turn the Hall Light on. Fill in the decision and the two outputs, press Run, then click Doorbell in the Inputs list.',
+      brief: 'When somebody presses the doorbell, send an alert to the phone and turn the Hall Light on. Fill in the decision and the two outputs, press Run, then click the doorbell in the house.',
       links: ALL,
       chart: { nodes: [
         { id: 'a', type: 'start', x: 230, y: 50 }, { id: 'b', type: 'decision', x: 230, y: 150 },
@@ -113,7 +113,7 @@
     },
     {
       title: 'Bedtime Mode', simInput: 'night', skill: 'design challenge', locked: true,
-      brief: 'The TV and the Hall Light have been left on. Build a flowchart that waits for night time, then switches the TV and light off and prints tomorrow\'s timetable. Press Run, then click Night time.',
+      brief: 'The TV and the Hall Light have been left on. Build a flowchart that waits for night time, then switches the TV and light off and prints tomorrow\'s timetable. Press Run, then click the sun in the house to make it night.',
       links: ALL, out: { tv: true, light: true }, chart: { nodes: [{ id: 'a', type: 'start', x: 230, y: 50 }], edges: [] },
       checks: [
         { t: 'A decision asks "Is Night time on?"', f: c => asks(c, 'night') },
