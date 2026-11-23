@@ -61,9 +61,15 @@
           <button class="sym" data-add="stop" type="button"><svg viewBox="0 0 44 20"><rect x="2" y="3" width="40" height="14" rx="7"/></svg>Stop</button>
         </div>
       </div>
-      <div class="tip" id="flow-tip">Select: drag a symbol to move it, or click it to edit it below.</div>
-      <div class="canvas-wrap"><svg id="chart" viewBox="0 0 640 700" preserveAspectRatio="xMidYMin meet" aria-label="Flowchart"></svg></div>
-      <div class="editor" id="editor"></div>
+      <div class="tip" id="flow-tip">Select: drag a symbol to move it, or click it to edit it.</div>
+      <div class="canvas-box">
+        <div class="canvas-wrap"><svg id="chart" viewBox="0 0 640 700" preserveAspectRatio="xMidYMin meet" aria-label="Flowchart"></svg></div>
+        <div class="zoom" role="group" aria-label="Zoom">
+          <button type="button" id="z-out" aria-label="Zoom out">−</button><span id="z-label">Fit</span><button type="button" id="z-in" aria-label="Zoom in">+</button>
+          <button type="button" id="z-fit" class="on">⤢ Fit to panel</button>
+        </div>
+      </div>
+      <div class="editor" id="editor" hidden></div>
       <div class="runbar">
         <button class="btn btn-primary" id="btn-run" type="button">▶ Run</button>
         <button class="btn btn-stop" id="btn-stop" type="button" disabled>■ Stop</button>
@@ -78,6 +84,7 @@
       <div class="card mimic">
         <div class="mimic-head"><span>THE HOUSE (MIMIC) <button class="link" id="btn-big" type="button">⤢ Enlarge</button></span>
           <span class="legend"><i class="sw eth"></i>Cable <i class="sw wifi"></i>Wi-Fi <i class="sw pk"></i>Packet</span></div>
+        <div class="waitbar" id="waitbar" role="status" hidden></div>
         <svg id="house" viewBox="0 0 560 410" aria-label="House mimic"></svg>
         <div class="tray" id="tray" hidden></div>
         <div class="tip" id="house-tip"></div>

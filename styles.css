@@ -197,3 +197,27 @@ button.io-row { cursor: pointer; }
 .checks li.ready::before { content: "▶"; background: var(--sun); border-color: var(--sun); color: #1B2440; font-size: 9px; font-weight: 900; display: grid; place-items: center; }
 .checks li small.go { color: #8A5A00; }
 :root[data-theme="dark"] .checks li small.go { color: var(--sun); }
+
+/* ---------- flowchart panel: Run bar on top, fixed-height canvas with zoom, pop-up editor ---------- */
+.flow-bar { order: 1; } .runbar { order: 2; background: var(--soft); border: 2.5px solid var(--line); border-radius: 12px; padding: 6px 10px; }
+#flow-tip { order: 3; } .canvas-box { order: 4; position: relative; }
+.canvas-wrap { height: clamp(300px, calc(100vh - 345px), 760px); overflow: auto; }
+.grid.big .canvas-wrap { height: clamp(300px, calc(100vh - 290px), 760px); }
+#chart { display: block; }
+.zoom { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 5px; align-items: center; background: var(--panel); border: 2.5px solid var(--outline); border-radius: 10px; padding: 4px 6px; box-shadow: 0 2px 0 var(--outline); font: 800 0.8rem var(--body); color: var(--ink); }
+.zoom button { border: 2px solid var(--outline); border-radius: 7px; background: var(--soft); color: var(--ink); font: 900 0.85rem var(--body); min-width: 28px; height: 26px; cursor: pointer; padding: 0 7px; }
+.zoom #z-label { min-width: 38px; text-align: center; font-family: var(--mono); font-size: 0.74rem; }
+.zoom #z-fit.on { background: var(--sun); color: #1B2440; }
+.editor { position: absolute; z-index: 6; width: min(300px, calc(100% - 16px)); min-height: 0; background: var(--panel); border: 3px solid var(--grape); border-radius: 12px; box-shadow: 4px 4px 0 var(--outline); padding: 8px 12px 10px; }
+.editor h4 { padding-right: 28px; }
+.ed-x { position: absolute; right: 7px; top: 6px; width: 24px; height: 24px; border: 2px solid var(--outline); border-radius: 7px; background: var(--soft); color: var(--ink); font: 900 0.75rem var(--body); cursor: pointer; padding: 0; }
+.editor .erow > span:first-child { min-width: 84px; }
+.editor .seg button { padding: 4px 9px; }
+/* ---------- "the flowchart is waiting for you" prompt ---------- */
+.waitbar { background: var(--sun-soft); border: 2.5px solid var(--sun); border-radius: 10px; padding: 7px 12px; font-size: 0.86rem; line-height: 1.35; color: var(--ink); }
+.waitbar.stuck { background: var(--berry-soft); border-color: var(--berry); }
+.io-row.cue { outline: 4px solid var(--sun); outline-offset: 2px; }
+.cue-text { font: 800 11px var(--body); fill: #1B2440; pointer-events: none; }
+
+/* editing layout: a little more room for the flowchart (the house enlarges by itself when the flowchart runs) */
+@media (min-width: 1181px) { .grid:not(.big):not(.noflow) { grid-template-columns: 262px minmax(360px, 1fr) minmax(330px, 400px); } }
